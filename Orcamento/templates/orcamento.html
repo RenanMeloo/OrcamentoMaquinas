@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CL Máquinas — Orçamento</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  :root{
+    --navy: #1B2A45;
+    --navy-soft: #33435F;
+    --steel: #64748B;
+    --bg: #F4F5F7;
+    --card: #FFFFFF;
+    --border: #E3E6EB;
+    --green: #16A34A;
+    --green-dark: #128040;
+    --red: #DC2626;
+  }
+
+  body{
+    background: var(--bg);
+    color: var(--navy);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+  }
+
+  .app-shell{
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  .brand-card{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem 1.25rem 0.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  .brand-card h1{
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.15rem;
+  }
+  .brand-card p{
+    color: var(--steel);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+  }
+  .brand-rule{
+    height: 3px;
+    background: var(--navy);
+    border-radius: 2px;
+    width: 60px;
+    margin: 0 auto 1rem;
+  }
+
+  .section-card{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  label.field-label{
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--navy-soft);
+    margin-bottom: 0.35rem;
+    display: block;
+  }
+
+  .form-control, .form-select{
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.92rem;
+    color: var(--navy);
+  }
+  .form-control:focus, .form-select:focus{
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(27,42,69,0.1);
+  }
+
+  /* Toggle peça/produto vs serviço */
+  .type-toggle{
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .type-toggle .btn-toggle{
+    flex: 1;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--navy-soft);
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.55rem 0.5rem;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .type-toggle .btn-toggle.active{
+    background: var(--navy);
+    color: #fff;
+    border-color: var(--navy);
+  }
+
+  .btn-include{
+    background: var(--navy);
+    color: #fff;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 0.65rem;
+    border: none;
+    width: 100%;
+    letter-spacing: 0.01em;
+  }
+  .btn-include:hover{ background: var(--navy-soft); color: #fff; }
+
+  .list-heading{
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--steel);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.4rem;
+    margin: 1.1rem 0 0.5rem;
+  }
+
+  .empty-hint{
+    color: #A6ACB8;
+    font-size: 0.85rem;
+    font-style: italic;
+    padding: 0.35rem 0;
+  }
+
+  .item-row{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .item-row:last-child{ border-bottom: none; }
+  .item-name{
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--navy);
+  }
+  .item-meta{
+    font-size: 0.78rem;
+    color: var(--steel);
+  }
+  .item-price{
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+  .item-remove{
+    background: none;
+    border: none;
+    color: var(--red);
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0 0.15rem;
+  }
+
+  .total-card{
+    background: var(--navy);
+    color: #fff;
+    border-radius: 12px;
+    padding: 0.9rem 1.1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  .total-card span:last-child{
+    font-size: 1.15rem;
+  }
+
+  .btn-share{
+    background: var(--green);
+    border: none;
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.95rem;
+    letter-spacing: 0.03em;
+    border-radius: 10px;
+    padding: 0.8rem;
+    width: 100%;
+  }
+  .btn-share:hover{ background: var(--green-dark); color: #fff; }
+  .btn-share:active{ transform: translateY(1px); }
+
+  .row.gx-2 > *{ padding-left: 0.4rem; padding-right: 0.4rem; }
+
+  .toast-copy{
+    position: fixed;
+    bottom: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--navy);
+    color: #fff;
+    padding: 0.6rem 1.1rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 50;
+  }
+  .toast-copy.show{ opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- Cabeçalho -->
+  <div class="brand-card">
+    <h1>CL MÁQUINAS</h1>
+    <p>MECÂNICA PESADA</p>
+    <div class="brand-rule"></div>
+  </div>
+
+  <!-- Dados do orçamento -->
+  <div class="section-card">
+    <div class="row gx-2 mb-3">
+      <div class="col-6">
+        <label class="field-label" for="tipo">Tipo:</label>
+        <select id="tipo" class="form-select">
+          <option value="ORÇAMENTO" selected>ORÇAMENTO</option>
+          <option value="OS">ORDEM DE SERVIÇO</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="field-label" for="data">Data:</label>
+        <input type="date" id="data" class="form-control">
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="field-label" for="cliente">Cliente:</label>
+      <input type="text" id="cliente" class="form-control" placeholder="Nome do cliente">
+    </div>
+
+    <div class="mb-3">
+      <label class="field-label" for="maquina">Máquina:</label>
+      <textarea id="maquina" class="form-control" rows="3" placeholder="Descrição da máquina"></textarea>
+    </div>
+
+    <div class="row gx-2 mb-3">
+      <div class="col-6">
+        <label class="field-label" for="placa">Placa:</label>
+        <input type="text" id="placa" class="form-control">
+      </div>
+      <div class="col-6">
+        <label class="field-label" for="horimetro">Horímetro:</label>
+        <input type="text" id="horimetro" class="form-control">
+      </div>
+    </div>
+
+    <div>
+      <label class="field-label" for="local">Local:</label>
+      <input type="text" id="local" class="form-control">
+    </div>
+  </div>
+
+  <!-- Adicionar item -->
+  <div class="section-card">
+    <label class="field-label mb-2">Adicionar Item:</label>
+
+    <div class="type-toggle">
+      <button type="button" class="btn-toggle active" id="btnPeca" data-type="peca">PEÇA / PRODUTO</button>
+      <button type="button" class="btn-toggle" id="btnServico" data-type="servico">SERVIÇO</button>
+    </div>
+
+    <div class="mb-3">
+      <label class="field-label" for="descricao">Descrição:</label>
+      <textarea id="descricao" class="form-control" rows="2" placeholder="Digite a descrição..."></textarea>
+    </div>
+
+    <div class="row gx-2 mb-3">
+      <div class="col-5">
+        <label class="field-label" for="qtd">Qtd:</label>
+        <input type="number" id="qtd" class="form-control" value="1" min="0" step="1">
+      </div>
+      <div class="col-7">
+        <label class="field-label" for="valorUnit">Valor Unit (R$):</label>
+        <input type="number" id="valorUnit" class="form-control" value="0,00" min="0" step="0.01">
+      </div>
+    </div>
+
+    <button type="button" class="btn-include" id="btnIncluir">INCLUIR NA LISTA ▾</button>
+
+    <!-- Lista de Peças / Produtos -->
+    <div class="list-heading">Peças / Produtos</div>
+    <div id="listaPecas"><div class="empty-hint" data-empty="peca">Nenhuma peça.</div></div>
+
+    <!-- Lista de Serviços -->
+    <div class="list-heading">Serviços</div>
+    <div id="listaServicos"><div class="empty-hint" data-empty="servico">Nenhum serviço.</div></div>
+  </div>
+
+  <!-- Observações -->
+  <div class="section-card">
+    <label class="field-label" for="observacoes">Observações:</label>
+    <textarea id="observacoes" class="form-control" rows="3" placeholder="Adicione observações adicionais..."></textarea>
+  </div>
+
+  <!-- Total -->
+  <div class="total-card">
+    <span>Total:</span>
+    <span id="totalGeral">R$ 0,00</span>
+  </div>
+
+  <div class="row gx-2 mb-3">
+    <div class="col-6">
+      <button type="button" class="btn-share" id="btnCompartilhar">COMPARTILHAR</button>
+    </div>
+    <div class="col-6">
+      <button type="button" class="btn-share" id="btnSalvar" style="background: var(--green);">SALVAR</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast-copy" id="toastCopy">Resumo copiado!</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- Estado ----------
+  const state = {
+    tipoAtivo: 'peca',       // 'peca' | 'servico'
+    pecas: [],                // { id, descricao, qtd, valorUnit }
+    servicos: []
+  };
+
+  // ---------- Referências ----------
+  const el = {
+    btnPeca: document.getElementById('btnPeca'),
+    btnServico: document.getElementById('btnServico'),
+    descricao: document.getElementById('descricao'),
+    qtd: document.getElementById('qtd'),
+    valorUnit: document.getElementById('valorUnit'),
+    btnIncluir: document.getElementById('btnIncluir'),
+    listaPecas: document.getElementById('listaPecas'),
+    listaServicos: document.getElementById('listaServicos'),
+    totalGeral: document.getElementById('totalGeral'),
+    btnCompartilhar: document.getElementById('btnCompartilhar'),
+    toastCopy: document.getElementById('toastCopy'),
+  };
+
+  const formatBRL = (valor) =>
+    valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  // ---------- Toggle Peça / Serviço ----------
+  function setTipoAtivo(tipo) {
+    state.tipoAtivo = tipo;
+    el.btnPeca.classList.toggle('active', tipo === 'peca');
+    el.btnServico.classList.toggle('active', tipo === 'servico');
+  }
+
+  el.btnPeca.addEventListener('click', () => setTipoAtivo('peca'));
+  el.btnServico.addEventListener('click', () => setTipoAtivo('servico'));
+
+  // ---------- Incluir item na lista ----------
+  el.btnIncluir.addEventListener('click', () => {
+    const descricao = el.descricao.value.trim();
+    const qtd = parseFloat(el.qtd.value) || 0;
+    const valorUnit = parseFloat(el.valorUnit.value) || 0;
+
+    if (!descricao) {
+      el.descricao.classList.add('is-invalid');
+      el.descricao.focus();
+      return;
+    }
+    el.descricao.classList.remove('is-invalid');
+
+    const item = {
+      id: crypto.randomUUID(),
+      descricao,
+      qtd,
+      valorUnit,
+    };
+
+    if (state.tipoAtivo === 'peca') {
+      state.pecas.push(item);
+    } else {
+      state.servicos.push(item);
+    }
+
+    el.descricao.value = '';
+    el.qtd.value = '1';
+    el.valorUnit.value = '0,00';
+    el.descricao.focus();
+
+    renderListas();
+  });
+
+  function renderLista(container, items, tipo) {
+    if (items.length === 0) {
+      container.innerHTML = `<div class="empty-hint" data-empty="${tipo}">Nenhum${tipo === 'peca' ? 'a peça' : ' serviço'}.</div>`;
+      return;
+    }
+
+    container.innerHTML = items.map(item => {
+      const subtotal = item.qtd * item.valorUnit;
+      return `
+        <div class="item-row" data-id="${item.id}">
+          <div>
+            <div class="item-name">${escapeHtml(item.descricao)}</div>
+            <div class="item-meta">${item.qtd} × ${formatBRL(item.valorUnit)}</div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="item-price">${formatBRL(subtotal)}</span>
+            <button type="button" class="item-remove" data-remove="${item.id}" data-tipo="${tipo}" aria-label="Remover item">×</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderListas() {
+    renderLista(el.listaPecas, state.pecas, 'peca');
+    renderLista(el.listaServicos, state.servicos, 'servico');
+    atualizarTotal();
+  }
+
+  function atualizarTotal() {
+    const totalPecas = state.pecas.reduce((acc, i) => acc + i.qtd * i.valorUnit, 0);
+    const totalServicos = state.servicos.reduce((acc, i) => acc + i.qtd * i.valorUnit, 0);
+    el.totalGeral.textContent = formatBRL(totalPecas + totalServicos);
+  }
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-remove]');
+    if (!btn) return;
+    const { remove: id, tipo } = btn.dataset;
+    const lista = tipo === 'peca' ? state.pecas : state.servicos;
+    const idx = lista.findIndex(i => i.id === id);
+    if (idx > -1) lista.splice(idx, 1);
+    renderListas();
+  });
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function montarResumo() {
+    const linhas = [];
+    linhas.push('CL MÁQUINAS — MECÂNICA PESADA');
+    linhas.push(`Tipo: ${document.getElementById('tipo').value}`);
+    linhas.push(`Data: ${document.getElementById('data').value || '-'}`);
+    linhas.push(`Cliente: ${document.getElementById('cliente').value || '-'}`);
+    linhas.push(`Máquina: ${document.getElementById('maquina').value || '-'}`);
+    linhas.push(`Placa: ${document.getElementById('placa').value || '-'} | Horímetro: ${document.getElementById('horimetro').value || '-'}`);
+    linhas.push(`Local: ${document.getElementById('local').value || '-'}`);
+    const obs = document.getElementById('observacoes').value.trim();
+    if (obs) linhas.push(`Observações: ${obs}`);
+    linhas.push('');
+
+    if (state.pecas.length) {
+      linhas.push('PEÇAS / PRODUTOS:');
+      state.pecas.forEach(i => linhas.push(`- ${i.descricao} (${i.qtd}x ${formatBRL(i.valorUnit)}) = ${formatBRL(i.qtd * i.valorUnit)}`));
+      linhas.push('');
+    }
+    if (state.servicos.length) {
+      linhas.push('SERVIÇOS:');
+      state.servicos.forEach(i => linhas.push(`- ${i.descricao} (${i.qtd}x ${formatBRL(i.valorUnit)}) = ${formatBRL(i.qtd * i.valorUnit)}`));
+      linhas.push('');
+    }
+
+    linhas.push(`TOTAL: ${el.totalGeral.textContent}`);
+    return linhas.join('\n');
+  }
+
+  el.btnCompartilhar.addEventListener('click', async () => {
+    const texto = montarResumo();
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Orçamento CL Máquinas', text: texto });
+        return;
+      } catch (err) {
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(texto);
+      el.toastCopy.classList.add('show');
+      setTimeout(() => el.toastCopy.classList.remove('show'), 1800);
+    } catch (err) {
+      alert(texto);
+    }
+  });
+
+  // Função de salvar orçamento
+  const btnSalvar = document.getElementById('btnSalvar');
+  btnSalvar.addEventListener('click', async () => {
+    const cliente = document.getElementById('cliente').value.trim();
+    if (!cliente) {
+      alert('Por favor, preencha o campo Cliente');
+      return;
+    }
+
+    btnSalvar.disabled = true;
+    btnSalvar.textContent = 'Salvando...';
+
+    const dados = {
+      tipo: document.getElementById('tipo').value,
+      data: document.getElementById('data').value,
+      cliente: cliente,
+      maquina: document.getElementById('maquina').value,
+      placa: document.getElementById('placa').value,
+      horimetro: document.getElementById('horimetro').value,
+      local: document.getElementById('local').value,
+      observacoes: document.getElementById('observacoes').value,
+      pecas: state.pecas,
+      servicos: state.servicos
+    };
+
+    try {
+      const response = await fetch('/orcamento/api/salvar/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dados)
+      });
+
+      const resultado = await response.json();
+
+      if (response.ok) {
+        alert(`Orçamento salvo com sucesso!\nNúmero: ${resultado.numero}`);
+        window.location.href = resultado.url;
+      } else {
+        alert(`Erro ao salvar: ${resultado.erro}`);
+      }
+    } catch (error) {
+      alert(`Erro de conexão: ${error.message}`);
+    } finally {
+      btnSalvar.disabled = false;
+      btnSalvar.textContent = 'SALVAR';
+    }
+  });
+
+  document.getElementById('data').valueAsDate = new Date();
+
+  renderListas();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Pedidos - CL Máquinas{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+  <div>
+    <h2><i class="fas fa-list" style="margin-right: 0.5rem;"></i> Pedidos / Orçamentos</h2>
+    <p style="margin: 0.3rem 0 0; color: var(--steel); font-size: 0.9rem;">Total: {{ total_orcamentos }} pedido(s)</p>
+  </div>
+  <a href="{% url 'orcamento:form' %}">
+    <button class="btn-nav">
+      <i class="fas fa-plus" style="margin-right: 0.4rem;"></i> Novo
+    </button>
+  </a>
+</div>
+
+<!-- Filtros e Busca -->
+<div class="filter-bar">
+  <form method="GET" style="width: 100%;">
+    <div class="filter-row">
+      <div>
+        <label for="busca" style="font-size: 0.85rem;">Buscar</label>
+        <input type="text" id="busca" name="busca" placeholder="Número ou Cliente" value="{{ busca }}">
+      </div>
+
+      <div>
+        <label for="cliente" style="font-size: 0.85rem;">Cliente</label>
+        <select id="cliente" name="cliente">
+          <option value="">Todos</option>
+          {% for cliente in clientes %}
+            <option value="{{ cliente.id }}" {% if cliente_selecionado == cliente.id|stringformat:"s" %}selected{% endif %}>
+              {{ cliente.nome }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label for="status" style="font-size: 0.85rem;">Status</label>
+        <select id="status" name="status">
+          <option value="">Todos</option>
+          {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if status_selecionado == value %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem;">
+        <i class="fas fa-search"></i>
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Lista de Pedidos -->
+{% if orcamentos %}
+<div class="card-container">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Número</th>
+        <th>Cliente</th>
+        <th>Placa</th>
+        <th>Status</th>
+        <th style="text-align: right;">Valor</th>
+        <th style="text-align: center;">Data</th>
+        <th style="text-align: center;">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for orcamento in orcamentos %}
+      <tr style="cursor: pointer;" onclick="window.location='{{ orcamento.get_absolute_url }}'">
+        <td>
+          <strong style="color: var(--navy);">{{ orcamento.numero }}</strong>
+        </td>
+        <td>{{ orcamento.cliente.nome }}</td>
+        <td>
+          {% if orcamento.frota.placa %}
+            {{ orcamento.frota.placa }}
+          {% else %}
+            <span style="color: var(--steel);">-</span>
+          {% endif %}
+        </td>
+        <td>
+          <span class="badge badge-{{ orcamento.status }}">
+            {{ orcamento.get_status_display }}
+          </span>
+        </td>
+        <td style="text-align: right;">
+          <strong>R$ {{ orcamento.valor_total|floatformat:2 }}</strong>
+        </td>
+        <td style="text-align: center; font-size: 0.9rem; color: var(--steel);">
+          {{ orcamento.data_criacao|date:"d/m/Y" }}
+        </td>
+        <td style="text-align: center; white-space: nowrap;" onclick="event.stopPropagation();">
+          <a href="{% url 'orcamento:editar' orcamento.numero %}" class="btn-acao" title="Editar">
+            <i class="fas fa-pen"></i>
+          </a>
+          <a href="{% url 'orcamento:duplicar' orcamento.numero %}" class="btn-acao" title="Duplicar">
+            <i class="fas fa-copy"></i>
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card-container">
+  <div class="empty-state">
+    {% if busca or cliente_selecionado or status_selecionado %}
+      <i class="fas fa-search" style="opacity: 0.3;"></i>
+      <p>Nenhum pedido encontrado com os critérios de busca</p>
+    {% else %}
+      <i class="fas fa-inbox" style="opacity: 0.3;"></i>
+      <p>Nenhum pedido cadastrado</p>
+    {% endif %}
+    <a href="{% url 'orcamento:form' %}">
+      <button class="btn btn-success">Criar Novo Pedido</button>
+    </a>
+  </div>
+</div>
+{% endif %}
+
+<style>
+  .btn-acao{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    color: var(--navy-soft);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    margin: 0 0.15rem;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .btn-acao:hover{
+    background: var(--navy);
+    color: #fff;
+  }
+</style>
+{% endblock %}

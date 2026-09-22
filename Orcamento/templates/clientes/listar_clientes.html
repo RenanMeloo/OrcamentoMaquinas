@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Clientes - CL Máquinas{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+  <div>
+    <h2><i class="fas fa-users" style="margin-right: 0.5rem;"></i> Clientes</h2>
+    <p style="margin: 0.3rem 0 0; color: var(--steel); font-size: 0.9rem;">Total: {{ total_clientes }} cliente(s)</p>
+  </div>
+  <a href="{% url 'orcamento:criar_cliente' %}">
+    <button class="btn-nav">
+      <i class="fas fa-plus" style="margin-right: 0.4rem;"></i> Novo Cliente
+    </button>
+  </a>
+</div>
+
+{% if clientes %}
+<div class="card-container">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>CNPJ</th>
+        <th>Email</th>
+        <th>Telefone</th>
+        <th style="text-align: center; width: 100px;">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cliente in clientes %}
+      <tr>
+        <td>
+          <strong>{{ cliente.nome }}</strong>
+        </td>
+        <td>
+          {% if cliente.cnpj %}
+            {{ cliente.cnpj }}
+          {% else %}
+            <span style="color: var(--steel);">-</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if cliente.email %}
+            {{ cliente.email }}
+          {% else %}
+            <span style="color: var(--steel);">-</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if cliente.telefone %}
+            {{ cliente.telefone }}
+          {% else %}
+            <span style="color: var(--steel);">-</span>
+          {% endif %}
+        </td>
+        <td style="text-align: center;">
+          <a href="{% url 'orcamento:listar_pedidos' %}?cliente={{ cliente.id }}" title="Ver pedidos">
+            <i class="fas fa-list" style="color: var(--navy); font-size: 1rem; cursor: pointer;"></i>
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card-container">
+  <div class="empty-state">
+    <i class="fas fa-user-slash" style="opacity: 0.3;"></i>
+    <p>Nenhum cliente cadastrado</p>
+    <a href="{% url 'orcamento:criar_cliente' %}">
+      <button class="btn btn-success">Criar Primeiro Cliente</button>
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

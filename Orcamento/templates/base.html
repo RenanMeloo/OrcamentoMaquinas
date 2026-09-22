@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}CL Máquinas{% endblock %}</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  :root{
+    --navy: #1B2A45;
+    --navy-soft: #33435F;
+    --steel: #64748B;
+    --bg: #F4F5F7;
+    --card: #FFFFFF;
+    --border: #E3E6EB;
+    --green: #16A34A;
+    --green-dark: #128040;
+    --red: #DC2626;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body{
+    background: var(--bg);
+    color: var(--navy);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+    min-height: 100vh;
+    display: flex;
+  }
+
+  .sidebar {
+    width: 250px;
+    background: var(--navy);
+    color: #fff;
+    padding: 1.5rem 0;
+    min-height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow-y: auto;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+  }
+
+  .sidebar-brand {
+    padding: 1rem 1.5rem;
+    text-align: center;
+    border-bottom: 2px solid rgba(255,255,255,0.1);
+    margin-bottom: 1.5rem;
+  }
+
+  .sidebar-brand h5 {
+    font-weight: 800;
+    font-size: 0.95rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.2rem;
+  }
+
+  .sidebar-brand p {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 0.08em;
+  }
+
+  .sidebar-menu {
+    list-style: none;
+  }
+
+  .sidebar-menu li {
+    margin: 0;
+  }
+
+  .sidebar-menu a {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.9rem 1.5rem;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+    font-weight: 500;
+    font-size: 0.95rem;
+  }
+
+  .sidebar-menu a:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+
+  .sidebar-menu a.active {
+    background: rgba(255,255,255,0.15);
+    border-left-color: var(--green);
+    color: #fff;
+  }
+
+  .sidebar-menu i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+  }
+
+  .main-content {
+    flex: 1;
+    margin-left: 250px;
+    padding: 2rem 1.5rem;
+  }
+
+  .top-bar {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .top-bar h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0;
+  }
+
+  .btn-nav {
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-nav:hover {
+    background: var(--green-dark);
+    color: #fff;
+  }
+
+  .alert {
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+  }
+
+  .alert-success {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .card-container {
+    background: var(--card);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+
+  .card-header {
+    background: var(--bg);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+    color: var(--navy-soft);
+  }
+
+  .card-body {
+    padding: 1.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.2rem;
+  }
+
+  label {
+    display: block;
+    font-weight: 600;
+    color: var(--navy-soft);
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+  }
+
+  input, select, textarea {
+    display: block;
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: var(--bg);
+    color: var(--navy);
+    transition: border 0.2s;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(27,42,69,0.1);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .btn {
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+  }
+
+  .btn-primary {
+    background: var(--navy);
+    color: #fff;
+  }
+
+  .btn-primary:hover {
+    background: var(--navy-soft);
+    color: #fff;
+  }
+
+  .btn-success {
+    background: var(--green);
+    color: #fff;
+  }
+
+  .btn-success:hover {
+    background: var(--green-dark);
+    color: #fff;
+  }
+
+  .table {
+    margin: 0;
+    width: 100%;
+  }
+
+  .table thead {
+    background: var(--bg);
+    border-bottom: 2px solid var(--border);
+  }
+
+  .table thead th {
+    color: var(--navy-soft);
+    font-weight: 700;
+    padding: 1rem 0.75rem;
+    text-align: left;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+  }
+
+  .table tbody td {
+    padding: 0.9rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table tbody tr:hover {
+    background: var(--bg);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .badge-rascunho { background: #fef3c7; color: #92400e; }
+  .badge-enviado { background: #bfdbfe; color: #1e40af; }
+  .badge-aprovado { background: #dcfce7; color: #166534; }
+  .badge-concluido { background: #d1d5db; color: #374151; }
+  .badge-rejeitado { background: #fee2e2; color: #991b1b; }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--steel);
+  }
+
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+
+  .empty-state p {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .filter-bar {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 1rem;
+    align-items: flex-end;
+  }
+
+  @media (max-width: 1200px) {
+    .filter-row {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 100%;
+      min-height: auto;
+      padding: 1rem;
+      position: relative;
+    }
+
+    .main-content {
+      margin-left: 0;
+      padding: 1rem;
+    }
+
+    body {
+      flex-direction: column;
+    }
+
+    .filter-row {
+      grid-template-columns: 1fr;
+    }
+
+    .top-bar {
+      flex-direction: column;
+      text-align: center;
+      gap: 1rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <h5>CL MÁQUINAS</h5>
+    <p>MECÂNICA PESADA</p>
+  </div>
+
+  <ul class="sidebar-menu">
+    <li>
+      <a href="{% url 'orcamento:form' %}" {% if pagina_ativa == 'orcamento' %}class="active"{% endif %}>
+        <i class="fas fa-file-alt"></i>
+        <span>Novo Orçamento</span>
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'orcamento:listar_pedidos' %}" {% if pagina_ativa == 'pedidos' %}class="active"{% endif %}>
+        <i class="fas fa-list"></i>
+        <span>Pedidos</span>
+      </a>
+    </li>
+    <li style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+      <a href="{% url 'orcamento:listar_clientes' %}" {% if pagina_ativa == 'clientes' %}class="active"{% endif %}>
+        <i class="fas fa-users"></i>
+        <span>Clientes</span>
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'orcamento:criar_cliente' %}" {% if pagina_ativa == 'novo_cliente' %}class="active"{% endif %}>
+        <i class="fas fa-user-plus"></i>
+        <span>+ Novo Cliente</span>
+      </a>
+    </li>
+  </ul>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">
+        {% if message.tags == 'success' %}<i class="fas fa-check-circle"></i>{% endif %}
+        {% if message.tags == 'error' %}<i class="fas fa-exclamation-circle"></i>{% endif %}
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
