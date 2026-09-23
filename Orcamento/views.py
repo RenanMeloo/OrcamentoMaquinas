@@ -239,17 +239,63 @@ def api_salvar_orcamento(request):
         return JsonResponse({'erro': str(e)}, status=500)
 
 
+def _fmt_moeda(valor):
+    """Formata um Decimal como 'R$ 1.234,50' (padrão pt-BR)"""
+    return f'{valor:,.2f}'.replace(',', 'X').replace('.', ',').replace('X', '.')
+
+
+def _fmt_qtd(valor):
+    """Formata uma quantidade sem casas decimais desnecessárias (2 -> '2', 2.5 -> '2,5')"""
+    valor = valor.normalize()
+    return format(valor, 'f').replace('.', ',')
+
+
+def _montar_resumo_texto(orcamento, pecas, servicos):
+    """Monta o texto do pedido para compartilhamento (WhatsApp, etc.)"""
+    linhas = ['CL MÁQUINAS — MECÂNICA PESADA', f'{orcamento.get_tipo_display()} {orcamento.numero}']
+    if orcamento.data_pedido:
+        linhas.append(f'Data: {orcamento.data_pedido.strftime("%d/%m/%Y")}')
+    linhas.append(f'Cliente: {orcamento.cliente.nome}')
+    if orcamento.maquina:
+        linhas.append(f'Máquina: {orcamento.maquina}')
+    if orcamento.frota:
+        linhas.append(f'Placa: {orcamento.frota.placa} | Horímetro: {orcamento.frota.horimetro} h')
+    if orcamento.local:
+        linhas.append(f'Local: {orcamento.local}')
+    if orcamento.observacoes:
+        linhas.append(f'Observações: {orcamento.observacoes}')
+    linhas.append('')
+
+    if pecas:
+        linhas.append('PEÇAS / PRODUTOS:')
+        for item in pecas:
+            linhas.append(f'- {item.descricao} ({_fmt_qtd(item.quantidade)}x R$ {_fmt_moeda(item.valor_unitario)}) = R$ {_fmt_moeda(item.subtotal)}')
+        linhas.append('')
+
+    if servicos:
+        linhas.append('SERVIÇOS:')
+        for item in servicos:
+            linhas.append(f'- {item.descricao} ({_fmt_qtd(item.quantidade)}x R$ {_fmt_moeda(item.valor_unitario)}) = R$ {_fmt_moeda(item.subtotal)}')
+        linhas.append('')
+
+    linhas.append(f'TOTAL: R$ {_fmt_moeda(orcamento.valor_total)}')
+    return '\n'.join(linhas)
+
+
 def visualizar_orcamento(request, numero):
     """Exibe um orçamento salvo"""
     orcamento = get_object_or_404(Orcamento, numero=numero)
     itens = orcamento.itens.all()
+    pecas = [item for item in itens if item.tipo == 'peca']
+    servicos = [item for item in itens if item.tipo == 'servico']
 
     context = {
         'orcamento': orcamento,
         'cliente': orcamento.cliente,
         'frota': orcamento.frota,
-        'pecas': [item for item in itens if item.tipo == 'peca'],
-        'servicos': [item for item in itens if item.tipo == 'servico'],
+        'pecas': pecas,
+        'servicos': servicos,
+        'resumo_compartilhar': _montar_resumo_texto(orcamento, pecas, servicos),
     }
 
     return render(request, 'visualizar_orcamento.html', context)

@@ -320,8 +320,8 @@
   </div>
 
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 1rem;">
-    <button type="button" class="btn-voltar" onclick="window.print()" style="background: var(--green);">
-      IMPRIMIR
+    <button type="button" class="btn-voltar" onclick="compartilharPedido()" style="background: var(--green);">
+      COMPARTILHAR
     </button>
     <button type="button" class="btn-voltar" onclick="window.location.href='/orcamento/'">
       NOVO
@@ -334,6 +334,7 @@
 
 </div>
 
+{{ resumo_compartilhar|json_script:"resumo-compartilhar" }}
 <script>
 function copiarUrl() {
   const url = window.location.href;
@@ -342,6 +343,27 @@ function copiarUrl() {
   }).catch(err => {
     alert('Erro ao copiar: ' + err);
   });
+}
+
+async function compartilharPedido() {
+  const texto = JSON.parse(document.getElementById('resumo-compartilhar').textContent);
+  const url = window.location.href;
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'Orçamento CL Máquinas - {{ orcamento.numero }}', text: texto, url });
+      return;
+    } catch (err) {
+      return;
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(`${texto}\n${url}`);
+    alert('Resumo do pedido copiado para a área de transferência!');
+  } catch (err) {
+    alert(texto);
+  }
 }
 </script>
 
