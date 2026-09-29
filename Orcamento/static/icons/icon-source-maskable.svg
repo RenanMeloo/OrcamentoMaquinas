@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#1B2A45"/>
+  <g transform="translate(256,256) scale(0.7) translate(-256,-256)">
+    <text x="256" y="290" font-family="-apple-system, Segoe UI, Arial, sans-serif" font-size="220" font-weight="800"
+          fill="#FFFFFF" text-anchor="middle" letter-spacing="-6">CL</text>
+    <rect x="176" y="336" width="160" height="16" rx="8" fill="#16A34A"/>
+  </g>
+</svg>

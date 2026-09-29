@@ -9,6 +9,8 @@ urlpatterns = [
     path('pedidos/', views.listar_orcamentos, name='listar_pedidos'),
     path('clientes/novo/', views.criar_cliente, name='criar_cliente'),
     path('clientes/', views.listar_clientes, name='listar_clientes'),
+    path('sw.js', views.service_worker, name='service_worker'),
+    path('offline/', views.offline, name='offline'),
 
     # Rotas genéricas por último
     path('<str:numero>/editar/', views.editar_orcamento, name='editar'),

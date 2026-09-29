@@ -300,3 +300,15 @@ def visualizar_orcamento(request, numero):
 
     return render(request, 'visualizar_orcamento.html', context)
 
+
+# ========== PWA ==========
+
+def service_worker(request):
+    """Serve o service worker em /orcamento/sw.js (escopo cobre todo o app)"""
+    return render(request, 'sw.js', content_type='application/javascript')
+
+
+def offline(request):
+    """Página exibida pelo service worker quando a navegação falha sem rede"""
+    return render(request, 'offline.html')
+
