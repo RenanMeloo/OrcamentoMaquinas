@@ -82,7 +82,7 @@
         </div>
         <div class="col-7">
           <label class="field-label" for="valorUnit">Valor Unit (R$):</label>
-          <input type="text" id="valorUnit" class="form-control" inputmode="decimal" value="0,00" placeholder="0,00">
+          <input type="text" id="valorUnit" class="form-control" inputmode="decimal" placeholder="0,00">
         </div>
       </div>
 
@@ -275,6 +275,17 @@
     color: var(--navy);
     white-space: nowrap;
   }
+  .item-price-editable{
+    cursor: pointer;
+    border-bottom: 1px dashed var(--steel);
+  }
+  .item-price-editable:hover{ color: var(--green-dark); }
+  .item-price-input{
+    width: 92px;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.85rem;
+    text-align: right;
+  }
   .item-remove{
     background: none;
     border: none;
@@ -360,8 +371,23 @@
   const state = {
     tipoAtivo: 'peca',
     pecas: [],
-    servicos: []
+    servicos: [],
+    editandoId: null
   };
+
+  function confirmarEdicaoPendente() {
+    if (!state.editandoId) return;
+    const input = document.querySelector(`[data-edit-valor="${state.editandoId}"]`);
+    if (input) {
+      const { editValor: id, tipo } = input.dataset;
+      const lista = tipo === 'peca' ? state.pecas : state.servicos;
+      const item = lista.find(i => i.id === id);
+      if (item) {
+        item.valorUnit = parseValorBR(input.value);
+      }
+    }
+    state.editandoId = null;
+  }
 
   const el = {
     btnPeca: document.getElementById('btnPeca'),
@@ -485,6 +511,7 @@
   el.btnServico.addEventListener('click', () => setTipoAtivo('servico'));
 
   el.btnIncluir.addEventListener('click', () => {
+    confirmarEdicaoPendente();
     const descricao = el.descricao.value.trim();
     const qtd = parseFloat(el.qtd.value) || 0;
     const valorUnit = parseValorBR(el.valorUnit.value);
@@ -511,7 +538,7 @@
 
     el.descricao.value = '';
     el.qtd.value = '1';
-    el.valorUnit.value = '0,00';
+    el.valorUnit.value = '';
     el.descricao.focus();
 
     renderListas();
@@ -525,6 +552,12 @@
 
     container.innerHTML = items.map(item => {
       const subtotal = item.qtd * item.valorUnit;
+      const editando = state.editandoId === item.id;
+      const precoHtml = editando
+        ? `<input type="text" class="form-control item-price-input" inputmode="decimal"
+                  data-edit-valor="${item.id}" data-tipo="${tipo}"
+                  value="${String(item.valorUnit).replace('.', ',')}">`
+        : `<span class="item-price item-price-editable" data-editar="${item.id}" data-tipo="${tipo}" title="Clique para editar o valor">${formatBRL(subtotal)}</span>`;
       return `
         <div class="item-row" data-id="${item.id}">
           <div>
@@ -532,11 +565,19 @@
             <div class="item-meta">${item.qtd} × ${formatBRL(item.valorUnit)}</div>
           </div>
           <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="item-price">${formatBRL(subtotal)}</span>
+            ${precoHtml}
             <button type="button" class="item-remove" data-remove="${item.id}" data-tipo="${tipo}" aria-label="Remover item">×</button>
           </div>
         </div>`;
     }).join('');
+
+    if (state.editandoId) {
+      const input = container.querySelector(`[data-edit-valor="${state.editandoId}"]`);
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }
   }
 
   function renderListas() {
@@ -566,10 +607,39 @@
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-remove]');
     if (!btn) return;
+    confirmarEdicaoPendente();
     const { remove: id, tipo } = btn.dataset;
     const lista = tipo === 'peca' ? state.pecas : state.servicos;
     const idx = lista.findIndex(i => i.id === id);
     if (idx > -1) lista.splice(idx, 1);
+    renderListas();
+  });
+
+  document.addEventListener('click', (e) => {
+    const precoEl = e.target.closest('[data-editar]');
+    if (!precoEl) return;
+    confirmarEdicaoPendente();
+    state.editandoId = precoEl.dataset.editar;
+    renderListas();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    const input = e.target.closest('[data-edit-valor]');
+    if (!input) return;
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      confirmarEdicaoPendente();
+      renderListas();
+    } else if (e.key === 'Escape') {
+      state.editandoId = null;
+      renderListas();
+    }
+  });
+
+  document.addEventListener('focusout', (e) => {
+    const input = e.target.closest('[data-edit-valor]');
+    if (!input) return;
+    confirmarEdicaoPendente();
     renderListas();
   });
 
@@ -629,6 +699,7 @@
 
   const btnSalvar = document.getElementById('btnSalvar');
   btnSalvar.addEventListener('click', async () => {
+    confirmarEdicaoPendente();
     const cliente = document.getElementById('cliente').value.trim();
     if (!cliente) {
       alert('Por favor, preencha o campo Cliente');
