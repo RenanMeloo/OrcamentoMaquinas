@@ -311,7 +311,7 @@
     <span style="font-size: 1.15rem;">R$ {{ orcamento.valor_total|floatformat:2 }}</span>
   </div>
 
-  <!-- Botões de ação -->
+
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0.6rem;">
     <button type="button" class="btn-voltar" onclick="window.location.href='{% url 'orcamento:editar' orcamento.numero %}'">
       EDITAR
@@ -475,27 +475,28 @@ function gerarPDFPedido(dados) {
   return doc;
 }
 
-async function compartilharPedido() {
+function baixarBlob(blob, nomeArquivo) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = nomeArquivo;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  // Revoga a URL só depois de um tempo — revogar cedo demais (como o doc.save()
+  // do jsPDF faz internamente) pode cancelar o download antes dele terminar.
+  setTimeout(() => URL.revokeObjectURL(url), 15000);
+}
+
+function compartilharPedido() {
+  // Sempre baixa o PDF de verdade — nada de depender de navigator.share(), que em vários
+  // apps (ex: WhatsApp Web no computador) "funciona" sem erro mas descarta o arquivo e só
+  // manda o texto. Baixando direto, o PDF sai garantido toda vez; o usuário anexa no app
+  // que quiser (WhatsApp, email, etc.).
   const dados = JSON.parse(document.getElementById('pedido-pdf-data').textContent);
   const doc = gerarPDFPedido(dados);
   const nomeArquivo = `Pedido-${dados.numero}.pdf`;
-  const blob = doc.output('blob');
-  const file = new File([blob], nomeArquivo, { type: 'application/pdf' });
-
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try {
-      await navigator.share({
-        files: [file],
-        title: `Pedido ${dados.numero} - CL Máquinas`,
-        text: `Pedido ${dados.numero} - ${dados.cliente}`,
-      });
-      return;
-    } catch (err) {
-      return;
-    }
-  }
-
-  doc.save(nomeArquivo);
+  baixarBlob(doc.output('blob'), nomeArquivo);
 }
 </script>
 
