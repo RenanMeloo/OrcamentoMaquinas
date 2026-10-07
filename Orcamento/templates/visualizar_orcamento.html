@@ -488,15 +488,40 @@ function baixarBlob(blob, nomeArquivo) {
   setTimeout(() => URL.revokeObjectURL(url), 15000);
 }
 
-function compartilharPedido() {
-  // Sempre baixa o PDF de verdade — nada de depender de navigator.share(), que em vários
-  // apps (ex: WhatsApp Web no computador) "funciona" sem erro mas descarta o arquivo e só
-  // manda o texto. Baixando direto, o PDF sai garantido toda vez; o usuário anexa no app
-  // que quiser (WhatsApp, email, etc.).
+function dispositivoMovel() {
+  if (navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean') {
+    return navigator.userAgentData.mobile;
+  }
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+}
+
+async function compartilharPedido() {
   const dados = JSON.parse(document.getElementById('pedido-pdf-data').textContent);
   const doc = gerarPDFPedido(dados);
   const nomeArquivo = `Pedido-${dados.numero}.pdf`;
-  baixarBlob(doc.output('blob'), nomeArquivo);
+  const blob = doc.output('blob');
+
+  // No celular, o app de destino (WhatsApp, etc.) recebe o arquivo de verdade pelo
+  // compartilhamento nativo — um toque e já vai o PDF anexado. No computador, isso não
+  // funciona de verdade pra apps web (ex: WhatsApp Web não recebe arquivo por aí, só
+  // texto), então nem tenta: baixa direto e o usuário anexa manualmente.
+  if (dispositivoMovel()) {
+    const file = new File([blob], nomeArquivo, { type: 'application/pdf' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: `Pedido ${dados.numero} - CL Máquinas`,
+          text: `Pedido ${dados.numero} - ${dados.cliente}`,
+        });
+        return;
+      } catch (err) {
+        // cai pro download abaixo
+      }
+    }
+  }
+
+  baixarBlob(blob, nomeArquivo);
 }
 </script>
 
