@@ -250,36 +250,30 @@ def _fmt_qtd(valor):
     return format(valor, 'f').replace('.', ',')
 
 
-def _montar_resumo_texto(orcamento, pecas, servicos):
-    """Monta o texto do pedido para compartilhamento (WhatsApp, etc.)"""
-    linhas = ['CL MÁQUINAS — MECÂNICA PESADA', f'{orcamento.get_tipo_display()} {orcamento.numero}']
-    if orcamento.data_pedido:
-        linhas.append(f'Data: {orcamento.data_pedido.strftime("%d/%m/%Y")}')
-    linhas.append(f'Cliente: {orcamento.cliente.nome}')
-    if orcamento.maquina:
-        linhas.append(f'Máquina: {orcamento.maquina}')
-    if orcamento.frota:
-        linhas.append(f'Placa: {orcamento.frota.placa} | Horímetro: {orcamento.frota.horimetro} h')
-    if orcamento.local:
-        linhas.append(f'Local: {orcamento.local}')
-    if orcamento.observacoes:
-        linhas.append(f'Observações: {orcamento.observacoes}')
-    linhas.append('')
+def _montar_pdf_data(orcamento, pecas, servicos):
+    """Serializa os dados do pedido pro JS montar o PDF (jsPDF), já formatados em pt-BR"""
+    data_exibicao = orcamento.data_pedido or orcamento.data_criacao.date()
 
-    if pecas:
-        linhas.append('PEÇAS / PRODUTOS:')
-        for item in pecas:
-            linhas.append(f'- {item.descricao} ({_fmt_qtd(item.quantidade)}x R$ {_fmt_moeda(item.valor_unitario)}) = R$ {_fmt_moeda(item.subtotal)}')
-        linhas.append('')
+    def _item_dict(item):
+        return {
+            'qtd': _fmt_qtd(item.quantidade),
+            'descricao': item.descricao,
+            'valorUnit': _fmt_moeda(item.valor_unitario),
+            'total': _fmt_moeda(item.subtotal),
+        }
 
-    if servicos:
-        linhas.append('SERVIÇOS:')
-        for item in servicos:
-            linhas.append(f'- {item.descricao} ({_fmt_qtd(item.quantidade)}x R$ {_fmt_moeda(item.valor_unitario)}) = R$ {_fmt_moeda(item.subtotal)}')
-        linhas.append('')
-
-    linhas.append(f'TOTAL: R$ {_fmt_moeda(orcamento.valor_total)}')
-    return '\n'.join(linhas)
+    return {
+        'numero': orcamento.numero,
+        'cliente': orcamento.cliente.nome,
+        'data': data_exibicao.strftime('%d/%m/%Y'),
+        'maquina': orcamento.maquina or '',
+        'placa': orcamento.frota.placa if orcamento.frota else '',
+        'horimetro': f'{orcamento.frota.horimetro} h' if orcamento.frota and orcamento.frota.horimetro else '',
+        'local': orcamento.local or '',
+        'pecas': [_item_dict(item) for item in pecas],
+        'servicos': [_item_dict(item) for item in servicos],
+        'valorTotal': _fmt_moeda(orcamento.valor_total),
+    }
 
 
 def visualizar_orcamento(request, numero):
@@ -295,7 +289,7 @@ def visualizar_orcamento(request, numero):
         'frota': orcamento.frota,
         'pecas': pecas,
         'servicos': servicos,
-        'resumo_compartilhar': _montar_resumo_texto(orcamento, pecas, servicos),
+        'pedido_pdf_data': _montar_pdf_data(orcamento, pecas, servicos),
     }
 
     return render(request, 'visualizar_orcamento.html', context)
