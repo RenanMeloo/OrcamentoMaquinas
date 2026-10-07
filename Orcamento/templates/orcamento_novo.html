@@ -114,18 +114,11 @@
     <span id="totalGeral">R$ 0,00</span>
   </div>
 
-  <div class="row gx-2 mb-3">
-    <div class="col-6">
-      <button type="button" class="btn-share" id="btnCompartilhar">COMPARTILHAR</button>
-    </div>
-    <div class="col-6">
-      <button type="button" class="btn-share" id="btnSalvar" style="background: var(--green);">{% if modo == 'editar' %}ATUALIZAR{% else %}SALVAR{% endif %}</button>
-    </div>
+  <div class="mb-3">
+    <button type="button" class="btn-share" id="btnSalvar" style="background: var(--green);">{% if modo == 'editar' %}ATUALIZAR{% else %}SALVAR{% endif %}</button>
   </div>
 
 </div>
-
-<div class="toast-copy" id="toastCopy">Resumo copiado!</div>
 
 <style>
   .field-label{
@@ -341,24 +334,6 @@
   .btn-share:active{ transform: translateY(1px); }
 
   .row.gx-2 > *{ padding-left: 0.4rem; padding-right: 0.4rem; }
-
-  .toast-copy{
-    position: fixed;
-    bottom: 1.25rem;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--navy);
-    color: #fff;
-    padding: 0.6rem 1.1rem;
-    border-radius: 999px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-    z-index: 50;
-  }
-  .toast-copy.show{ opacity: 1; }
 </style>
 
 <script>
@@ -401,8 +376,6 @@
     subtotalPecas: document.getElementById('subtotalPecas'),
     subtotalServicos: document.getElementById('subtotalServicos'),
     totalGeral: document.getElementById('totalGeral'),
-    btnCompartilhar: document.getElementById('btnCompartilhar'),
-    toastCopy: document.getElementById('toastCopy'),
   };
 
   const formatBRL = (valor) =>
@@ -648,54 +621,6 @@
     div.textContent = str;
     return div.innerHTML;
   }
-
-  function montarResumo() {
-    const linhas = [];
-    linhas.push('CL MÁQUINAS — MECÂNICA PESADA');
-    linhas.push(`Tipo: ${document.getElementById('tipo').value}`);
-    linhas.push(`Data: ${document.getElementById('data').value || '-'}`);
-    linhas.push(`Cliente: ${document.getElementById('cliente').value || '-'}`);
-    linhas.push(`Máquina: ${document.getElementById('maquina').value || '-'}`);
-    linhas.push(`Placa: ${document.getElementById('placa').value || '-'} | Horímetro: ${document.getElementById('horimetro').value || '-'}`);
-    linhas.push(`Local: ${document.getElementById('local').value || '-'}`);
-    const obs = document.getElementById('observacoes').value.trim();
-    if (obs) linhas.push(`Observações: ${obs}`);
-    linhas.push('');
-
-    if (state.pecas.length) {
-      linhas.push('PEÇAS / PRODUTOS:');
-      state.pecas.forEach(i => linhas.push(`- ${i.descricao} (${i.qtd}x ${formatBRL(i.valorUnit)}) = ${formatBRL(i.qtd * i.valorUnit)}`));
-      linhas.push('');
-    }
-    if (state.servicos.length) {
-      linhas.push('SERVIÇOS:');
-      state.servicos.forEach(i => linhas.push(`- ${i.descricao} (${i.qtd}x ${formatBRL(i.valorUnit)}) = ${formatBRL(i.qtd * i.valorUnit)}`));
-      linhas.push('');
-    }
-
-    linhas.push(`TOTAL: ${el.totalGeral.textContent}`);
-    return linhas.join('\n');
-  }
-
-  el.btnCompartilhar.addEventListener('click', async () => {
-    const texto = montarResumo();
-
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: 'Orçamento CL Máquinas', text: texto });
-        return;
-      } catch (err) {
-      }
-    }
-
-    try {
-      await navigator.clipboard.writeText(texto);
-      el.toastCopy.classList.add('show');
-      setTimeout(() => el.toastCopy.classList.remove('show'), 1800);
-    } catch (err) {
-      alert(texto);
-    }
-  });
 
   const btnSalvar = document.getElementById('btnSalvar');
   btnSalvar.addEventListener('click', async () => {
