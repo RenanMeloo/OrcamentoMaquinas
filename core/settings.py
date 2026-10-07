@@ -9,6 +9,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key')
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 ALLOWED_HOSTS = ['*']
+
+# A Railway (e proxies reversos em geral) termina o HTTPS na borda e repassa a
+# requisição por HTTP interno, sinalizando o esquema original via X-Forwarded-Proto.
+# Sem isso, o Django acha que a requisição é HTTP e a checagem de CSRF falha,
+# porque o navegador manda Origin: https://... mas o Django espera http://...
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+_csrf_trusted_origins = [
+    origin.strip() for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()
+]
+_railway_public_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
+if _railway_public_domain:
+    _csrf_trusted_origins.append(f'https://{_railway_public_domain}')
+CSRF_TRUSTED_ORIGINS = _csrf_trusted_origins
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
